@@ -5,6 +5,13 @@ language: cpp
 compiler: gcc
 dist: xenial
 
+cache:
+  directories:
+  - $HOME/.cache
+
+env:
+- SETUP_PATH=.ci-local:.ci
+
 addons:
   apt:
     packages:
