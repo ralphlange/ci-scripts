@@ -80,10 +80,10 @@ jobs:
     install: python cue-test.py env
     script: python cue-test.py
 
-  - env: SET=test00
-    os: osx
-    install: python cue-test.py env
-    script: python cue-test.py
+#  - env: SET=test00
+#    os: osx
+#    install: python cue-test.py env
+#    script: python cue-test.py
 
   - env: SET=test00
     os: windows
@@ -92,54 +92,54 @@ jobs:
 
 # Compile example
 
-  - env: SET=test01
-    dist: bionic
+#  - env: SET=test01
+#    dist: bionic
 
-  - env: SET=test01 BCFG=static-debug
-    dist: bionic
+#  - env: SET=test01 BCFG=static-debug
+#    dist: bionic
 
-  - env: SET=test01
-    dist: trusty
+#  - env: SET=test01
+#    dist: trusty
 
-  - env: SET=test01 BCFG=static-debug
-    dist: trusty
+#  - env: SET=test01 BCFG=static-debug
+#    dist: trusty
 
   - env: SET=test01 TRAVIS_COMPILER=gcc
     language: python
     python: "3.7"
 
   - env: SET=test01 EXTRA="CMD_CXXFLAGS=-std=c++11"
-  - env: SET=test01 BCFG=static
-  - env: SET=test01 BCFG=debug
-  - env: SET=test01 BCFG=static-debug
+#  - env: SET=test01 BCFG=static
+#  - env: SET=test01 BCFG=debug
+#  - env: SET=test01 BCFG=static-debug
 
-  - env: SET=test01
-    compiler: clang
+#  - env: SET=test01
+#    compiler: clang
 
-  - env: SET=test01 BCFG=static-debug
-    compiler: clang
+#  - env: SET=test01 BCFG=static-debug
+#    compiler: clang
 
-  - os: osx
-    env:
-      - SET=test01
-      - EXTRA=CMD_CFLAGS="-mmacosx-version-min=10.7"
-      - EXTRA1=CMD_CXXFLAGS="-mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
-      - EXTRA2=CMD_LDXFLAGS="-mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
-    compiler: clang
+#  - os: osx
+#    env:
+#      - SET=test01
+#      - EXTRA=CMD_CFLAGS="-mmacosx-version-min=10.7"
+#      - EXTRA1=CMD_CXXFLAGS="-mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
+#      - EXTRA2=CMD_LDXFLAGS="-mmacosx-version-min=10.7 -std=c++11 -stdlib=libc++"
+#    compiler: clang
 
-  - env: SET=test01 BCFG=debug
-    os: osx
-    compiler: clang
+#  - env: SET=test01 BCFG=debug
+#    os: osx
+#    compiler: clang
 
-  - env: SET=test01 WINE=32 TEST=NO
-  - env: SET=test01 WINE=32 TEST=NO BCFG=static
-  - env: SET=test01 WINE=32 TEST=NO BCFG=debug
-  - env: SET=test01 WINE=32 TEST=NO BCFG=static-debug
+#  - env: SET=test01 WINE=32 TEST=NO
+#  - env: SET=test01 WINE=32 TEST=NO BCFG=static
+#  - env: SET=test01 WINE=32 TEST=NO BCFG=debug
+#  - env: SET=test01 WINE=32 TEST=NO BCFG=static-debug
 
-  - env: SET=test01 WINE=64 TEST=NO
-  - env: SET=test01 WINE=64 TEST=NO BCFG=static
-  - env: SET=test01 WINE=64 TEST=NO BCFG=debug
-  - env: SET=test01 WINE=64 TEST=NO BCFG=static-debug
+#  - env: SET=test01 WINE=64 TEST=NO
+#  - env: SET=test01 WINE=64 TEST=NO BCFG=static
+#  - env: SET=test01 WINE=64 TEST=NO BCFG=debug
+#  - env: SET=test01 WINE=64 TEST=NO BCFG=static-debug
 
   - env: SET=test01 RTEMS=4.9 BASE=3.15 TEST=NO
   - env: SET=test01 RTEMS=4.9 BASE=3.15 TEST=NO BCFG=static
@@ -151,24 +151,24 @@ jobs:
   - env: SET=test01 RTEMS=4.10 BCFG=debug
   - env: SET=test01 RTEMS=4.10 BCFG=static-debug
 
-  - env: SET=test01
-    os: windows
-  - env: SET=test01 BCFG=static
-    os: windows
-  - env: SET=test01 BCFG=debug
-    os: windows
-  - env: SET=test01 BCFG=static-debug
-    os: windows
+#  - env: SET=test01
+#    os: windows
+#  - env: SET=test01 BCFG=static
+#    os: windows
+#  - env: SET=test01 BCFG=debug
+#    os: windows
+#  - env: SET=test01 BCFG=static-debug
+#    os: windows
 
-  - env: SET=test01
-    compiler: vs2017
-    os: windows
-  - env: SET=test01 BCFG=static
-    compiler: vs2017
-    os: windows
-  - env: SET=test01 BCFG=debug
-    compiler: vs2017
-    os: windows
-  - env: SET=test01 BCFG=static-debug
-    compiler: vs2017
-    os: windows
+#  - env: SET=test01
+#    compiler: vs2017
+#    os: windows
+#  - env: SET=test01 BCFG=static
+#    compiler: vs2017
+#    os: windows
+#  - env: SET=test01 BCFG=debug
+#    compiler: vs2017
+#    os: windows
+#  - env: SET=test01 BCFG=static-debug
+#    compiler: vs2017
+#    os: windows
