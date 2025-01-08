@@ -77,7 +77,7 @@ environment:
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - CMP: gcc
   - CMP: vs2022
-    VV: 0
+    VV: 1
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - CMP: vs2022
     BASE: 3.15
