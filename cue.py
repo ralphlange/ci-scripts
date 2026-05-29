@@ -106,7 +106,7 @@ def detect_context():
             ci['os'] = 'osx'
         else:
             ci['os'] = os.environ['RUNNER_OS'].lower()
-        ci['platform'] = 'x64'
+        ci['platform'] = os.environ.get('RUNNER_ARCH', 'X64').lower()
         if 'CMP' in os.environ:
             ci['compiler'] = os.environ['CMP']
         ci['choco'] += ['strawberryperl']
@@ -287,12 +287,17 @@ toolsdir = os.path.join(homedir, '.tools')
 vcvars_table = {
     # https://en.wikipedia.org/wiki/Microsoft_Visual_Studio#History
     'vs2022': [r'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat',
-               r'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'],
+               r'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files\Microsoft Visual Studio\2022\Preview\VC\Auxiliary\Build\vcvarsall.bat'],
     'vs2019': [r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat',
-               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'],
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build\vcvarsall.bat'],
     'vs2017': [r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat',
                r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat',
-               r'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat'],
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Preview\VC\Auxiliary\Build\vcvarsall.bat'],
     'vs2015': [r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat'],
     'vs2013': [r'C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat'],
     'vs2012': [r'C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat'],
@@ -680,12 +685,16 @@ def detect_epics_host_arch():
                 os.environ['EPICS_HOST_ARCH'] = 'win32-x86' + hostarchsuffix
             elif ci['platform'] == 'x64':
                 os.environ['EPICS_HOST_ARCH'] = 'windows-x64' + hostarchsuffix
+            elif ci['platform'] == 'arm64':
+                os.environ['EPICS_HOST_ARCH'] = 'windows-arm64' + hostarchsuffix
 
         elif ci['compiler'] == 'gcc':
             if ci['platform'] == 'x86':
                 os.environ['EPICS_HOST_ARCH'] = 'win32-x86-mingw'
             elif ci['platform'] == 'x64':
                 os.environ['EPICS_HOST_ARCH'] = 'windows-x64-mingw'
+            elif ci['platform'] == 'arm64':
+                os.environ['EPICS_HOST_ARCH'] = 'windows-arm64-mingw'
 
     if 'EPICS_HOST_ARCH' not in os.environ:
         logger.debug('Running script to detect EPICS host architecture in %s', places['EPICS_BASE'])
@@ -1410,7 +1419,8 @@ def with_vcvars(cmd):
     info['arch'] = {
         'x86': 'x86',  # 'amd64_x86' ??
         'x64': 'amd64',
-    }[ci['platform']]  # 'x86' or 'x64'
+        'arm64': 'arm64',
+    }[ci['platform']]  # 'x86', 'x64' or 'arm64'
 
     info['vcvars'] = vcvars_found[CC]
 
