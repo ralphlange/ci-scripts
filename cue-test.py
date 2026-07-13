@@ -454,7 +454,7 @@ class TestVCVars(unittest.TestCase):
             elif ci_service == 'github-actions' and os.environ['IMAGEOS'] == 'win19':
                 os.environ['CMP'] = 'vs2019'
             else:
-                os.environ['CMP'] = 'vs2022'
+                os.environ['CMP'] = 'vs'
         cue.detect_context()
         cue.with_vcvars('env')
 
