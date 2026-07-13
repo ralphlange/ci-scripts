@@ -63,7 +63,7 @@ jobs:
           name: "3.15 Ub-24 clang"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         submodules: true
     - name: Prepare and compile dependencies

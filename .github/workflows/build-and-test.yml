@@ -66,7 +66,7 @@ jobs:
             base: "3.14"
             name: "B-3.14 Ub-24 gcc-13, static"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Prepare and compile dependencies
       run: python cue.py prepare
     - name: Build main module (example app)
@@ -104,7 +104,7 @@ jobs:
 #            base: "3.14"
 #            name: "B-3.14 Mac-15"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Prepare and compile dependencies
       run: python cue.py prepare
     - name: Build main module (example app)
@@ -141,7 +141,7 @@ jobs:
             base: "3.14"
             name: "B-3.14 Win-25 MSC-22 static"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Prepare and compile dependencies
       run: python cue.py prepare
     - name: Build main module (example app)
@@ -180,7 +180,7 @@ jobs:
         - cross: RTEMS-pc386-qemu@4.10
           test: NO
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Prepare and compile dependencies
       run: python cue.py prepare
     - name: Build main module (example app)
