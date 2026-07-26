@@ -18,6 +18,9 @@ from argparse import Namespace
 builddir = os.getcwd()
 
 # Detect basic context (service, os)
+ci_service = 'none'
+ci_os = 'none'
+
 if 'TRAVIS' in os.environ:
     ci_service = 'travis'
     ci_os = os.environ['TRAVIS_OS_NAME']
@@ -80,7 +83,7 @@ class TestSourceSet(unittest.TestCase):
 
     def test_EmptySetupDirsPath(self):
         del os.environ['SETUP_PATH']
-        self.assertRaisesRegex(NameError, '\(SETUP_PATH\) is empty', cue.source_set, 'test01')
+        self.assertRaisesRegex(NameError, r'\(SETUP_PATH\) is empty', cue.source_set, 'test01')
 
     def test_InvalidSetupName(self):
         self.assertRaisesRegex(NameError, 'does not exist in SETUP_PATH', cue.source_set, 'xxdoesnotexistxx')
@@ -222,7 +225,7 @@ class TestAddDependencyUpToDateCheck(unittest.TestCase):
         self.assertEqual(checked_out, self.hash_3_15_6,
                          'Wrong commit of dependency checked out (expected=\"{0}\" found=\"{1}\")'
                          .format(self.hash_3_15_6, checked_out))
-        self.assertFalse(find_in_file('include \$\(TOP\)/../RELEASE.local', self.release_file),
+        self.assertFalse(find_in_file(r'include \$\(TOP\)/../RELEASE.local', self.release_file),
                          'RELEASE in Base includes TOP/../RELEASE.local')
 
     def test_UpToDateDependency(self):
@@ -774,6 +777,10 @@ class TestSetupForBuild(unittest.TestCase):
                     self.assertTrue(re.search('^win32-x86', os.environ['EPICS_HOST_ARCH']),
                                     'EPICS_HOST_ARCH (found {0}) is not win32-x86 for {1} / {2}'
                                     .format(os.environ['EPICS_HOST_ARCH'], cc, platform))
+                elif platform == 'arm64':
+                    self.assertTrue(re.search('^windows-arm64', os.environ['EPICS_HOST_ARCH']),
+                                    'EPICS_HOST_ARCH (found {0}) is not windows-arm64 for {1} / {2}'
+                                    .format(os.environ['EPICS_HOST_ARCH'], cc, platform))
                 else:
                     self.assertTrue(re.search('^windows-x64', os.environ['EPICS_HOST_ARCH']),
                                     'EPICS_HOST_ARCH (found {0}) is not windows-x64 for {1} / {2}'
@@ -787,6 +794,28 @@ class TestSetupForBuild(unittest.TestCase):
                         self.assertTrue(re.search(pattern[platform], os.environ['PATH']),
                                         'Binary location for {0} not in PATH (found PATH = {1})'
                                         .format(pattern[platform], os.environ['PATH']))
+
+    def test_HostArchPlatformArm64(self):
+        platform = 'arm64'
+        cue.places['EPICS_BASE'] = '.'
+        cue.ci['os'] = 'windows'
+        cue.ci['debug'] = False
+        cue.ci['static'] = False
+        for cc in ['vs2022', 'gcc']:
+            cue.ci['platform'] = platform
+            cue.ci['compiler'] = cc
+            cue.detect_epics_host_arch()
+            self.assertTrue('EPICS_HOST_ARCH' in os.environ,
+                            'EPICS_HOST_ARCH is not set for {0} / {1}'
+                            .format(cc, cue.ci['platform']))
+            self.assertTrue(re.search('^windows-arm64', os.environ['EPICS_HOST_ARCH']),
+                            'EPICS_HOST_ARCH (found {0}) is not windows-arm64 for {1} / {2}'
+                            .format(os.environ['EPICS_HOST_ARCH'], cc, platform))
+            if cc == 'gcc':
+                self.assertTrue(re.search('-mingw$', os.environ['EPICS_HOST_ARCH']),
+                                'EPICS_HOST_ARCH (found {0}) is not -mingw for {1} / {2}'
+                                .format(os.environ['EPICS_HOST_ARCH'], cc, platform))
+            os.environ.pop('EPICS_HOST_ARCH', None)
 
     @unittest.skipIf(ci_os != 'windows', 'Strawberry perl test only applies to windows')
     def test_StrawberryInPath(self):

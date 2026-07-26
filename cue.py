@@ -106,7 +106,7 @@ def detect_context():
             ci['os'] = 'osx'
         else:
             ci['os'] = os.environ['RUNNER_OS'].lower()
-        ci['platform'] = 'x64'
+        ci['platform'] = os.environ.get('RUNNER_ARCH', 'X64').lower()
         if 'CMP' in os.environ:
             ci['compiler'] = os.environ['CMP']
         ci['choco'] += ['strawberryperl']
@@ -287,12 +287,17 @@ toolsdir = os.path.join(homedir, '.tools')
 vcvars_table = {
     # https://en.wikipedia.org/wiki/Microsoft_Visual_Studio#History
     'vs2022': [r'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat',
-               r'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'],
+               r'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files\Microsoft Visual Studio\2022\Preview\VC\Auxiliary\Build\vcvarsall.bat'],
     'vs2019': [r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat',
-               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat'],
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build\vcvarsall.bat'],
     'vs2017': [r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat',
                r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat',
-               r'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat'],
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat',
+               r'C:\Program Files (x86)\Microsoft Visual Studio\2017\Preview\VC\Auxiliary\Build\vcvarsall.bat'],
     'vs2015': [r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat'],
     'vs2013': [r'C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat'],
     'vs2012': [r'C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat'],
@@ -680,12 +685,20 @@ def detect_epics_host_arch():
                 os.environ['EPICS_HOST_ARCH'] = 'win32-x86' + hostarchsuffix
             elif ci['platform'] == 'x64':
                 os.environ['EPICS_HOST_ARCH'] = 'windows-x64' + hostarchsuffix
+            elif ci['platform'] == 'arm64':
+                os.environ['EPICS_HOST_ARCH'] = 'windows-arm64' + hostarchsuffix
 
         elif ci['compiler'] == 'gcc':
+            hostarchsuffix = ''
+            if ci['debug']:
+                hostarchsuffix = '-debug'
+
             if ci['platform'] == 'x86':
-                os.environ['EPICS_HOST_ARCH'] = 'win32-x86-mingw'
+                os.environ['EPICS_HOST_ARCH'] = 'win32-x86-mingw' + hostarchsuffix
             elif ci['platform'] == 'x64':
-                os.environ['EPICS_HOST_ARCH'] = 'windows-x64-mingw'
+                os.environ['EPICS_HOST_ARCH'] = 'windows-x64-mingw' + hostarchsuffix
+            elif ci['platform'] == 'arm64':
+                os.environ['EPICS_HOST_ARCH'] = 'windows-arm64-mingw' + hostarchsuffix
 
     if 'EPICS_HOST_ARCH' not in os.environ:
         logger.debug('Running script to detect EPICS host architecture in %s', places['EPICS_BASE'])
@@ -1258,6 +1271,43 @@ PERL = C:/Strawberry/perl/bin/perl -CSD'''
             with open(os.path.join(places['EPICS_BASE'], 'configure', 'CONFIG_SITE'), 'a') as f:
                 f.write(extra_config)
 
+        # Add missing configuration files for Windows ARM64
+        if ci['os'] == 'windows' and ci['platform'] == 'arm64':
+            os_dir = os.path.join(places['EPICS_BASE'], 'configure', 'os')
+            if not os.path.exists(os.path.join(os_dir, 'CONFIG.windows-arm64.Common')):
+                print('{0}Creating missing EPICS Base configuration files for windows-arm64{1}'
+                      .format(ANSI_YELLOW, ANSI_RESET))
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64.Common'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.win32-x86.Common\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64.windows-arm64'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.win32-x86.win32-x86\n')
+                    f.write('-include $(CONFIG)/os/CONFIG_SITE.win32-x86.win32-x86\n')
+                    f.write('OPT_LDFLAGS += -MACHINE:ARM64\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-static.Common'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64.Common\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-static.windows-arm64-static'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64.windows-arm64\n')
+                    f.write('SHARED_LIBRARIES = NO\n')
+                    f.write('STATIC_BUILD = YES\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-debug.Common'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64.Common\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-debug.windows-arm64-debug'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64.windows-arm64\n')
+                    f.write('HOST_OPT = NO\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-static-debug.Common'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64.Common\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-static-debug.windows-arm64-static-debug'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64-static.windows-arm64-static\n')
+                    f.write('HOST_OPT = NO\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-mingw.Common'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.win32-x86-mingw.Common\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-mingw.windows-arm64-mingw'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.win32-x86-mingw.win32-x86-mingw\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-mingw-debug.Common'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.windows-arm64-mingw.Common\n')
+                with open(os.path.join(os_dir, 'CONFIG.windows-arm64-mingw-debug.windows-arm64-mingw-debug'), 'w') as f:
+                    f.write('include $(CONFIG)/os/CONFIG.win32-x86-mingw.win32-x86-mingw-debug\n')
+
         # enable color in error and warning messages if the (cross) compiler supports it
         with open(os.path.join(places['EPICS_BASE'], 'configure', 'CONFIG'), 'a') as f:
             f.write('''
@@ -1410,7 +1460,8 @@ def with_vcvars(cmd):
     info['arch'] = {
         'x86': 'x86',  # 'amd64_x86' ??
         'x64': 'amd64',
-    }[ci['platform']]  # 'x86' or 'x64'
+        'arm64': 'arm64',
+    }[ci['platform']]  # 'x86', 'x64' or 'arm64'
 
     info['vcvars'] = vcvars_found[CC]
 
